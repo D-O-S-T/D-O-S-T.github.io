@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CalcQuest — Domine o Cálculo 1</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;700;800&display=swap"
+        rel="stylesheet" />
+</head>
+
+<body>
+
+    <div id="screen-home" class="screen active">
+        <div class="home-bg">
+            <div class="grid-lines"></div>
+            <div class="floating-symbols" aria-hidden="true">
+                <span>∫</span><span>∂</span><span>lim</span><span>dx</span>
+                <span>∞</span><span>Σ</span><span>f'</span><span>∆x</span>
+            </div>
+        </div>
+        <div class="home-content">
+            <div class="logo-block">
+                <div class="logo-tag">CÁLCULO 1</div>
+                <h1 class="logo-title">CALC<span class="accent">QUEST</span></h1>
+                <p class="logo-sub">Limites · Derivadas · Integrais</p>
+            </div>
+            <div class="player-setup">
+                <label class="input-label" for="player-name">Seu nome:</label>
+                <input id="player-name" class="name-input" type="text" placeholder="Ex: João Silva" maxlength="24"
+                    autocomplete="off" />
+                <button id="btn-start" class="btn-primary" onclick="startGame()">
+                    <span>INICIAR JORNADA</span>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <path d="M5 12H19M12 5l7 7-7 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                    </svg>
+                </button>
+            </div>
+            <button class="btn-ghost" onclick="showScreen('screen-ranking')">🏆 Ranking</button>
+        </div>
+    </div>
+
+    <div id="screen-map" class="screen">
+        <header class="game-header">
+            <div class="hdr-left">
+                <button class="btn-icon" onclick="confirmHome()" title="Menu">⌂</button>
+                <span id="hdr-player-name" class="hdr-name"></span>
+            </div>
+            <div class="hdr-right">
+                <div class="lives-display" id="lives-display"></div>
+                <div class="score-pill"><span id="hdr-score">0</span> pts</div>
+            </div>
+        </header>
+
+        <div class="map-container">
+            <h2 class="map-title">Escolha sua fase</h2>
+
+            <div class="phase-card" id="phase-card-0">
+                <div class="phase-header">
+                    <div class="phase-icon">∞</div>
+                    <div class="phase-info">
+                        <div class="phase-label">FASE 1</div>
+                        <div class="phase-name">LIMITES</div>
+                    </div>
+                    <div class="phase-status" id="phase-status-0"></div>
+                </div>
+                <div class="subfase-row" id="subfases-0"></div>
+            </div>
+
+            <div class="phase-card locked" id="phase-card-1">
+                <div class="phase-header">
+                    <div class="phase-icon">∂</div>
+                    <div class="phase-info">
+                        <div class="phase-label">FASE 2</div>
+                        <div class="phase-name">DERIVADAS</div>
+                    </div>
+                    <div class="phase-status" id="phase-status-1"></div>
+                </div>
+                <div class="subfase-row" id="subfases-1"></div>
+            </div>
+
+            <div class="phase-card locked" id="phase-card-2">
+                <div class="phase-header">
+                    <div class="phase-icon">∫</div>
+                    <div class="phase-info">
+                        <div class="phase-label">FASE 3</div>
+                        <div class="phase-name">INTEGRAIS</div>
+                    </div>
+                    <div class="phase-status" id="phase-status-2"></div>
+                </div>
+                <div class="subfase-row" id="subfases-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-quiz" class="screen">
+        <header class="game-header">
+            <div class="hdr-left">
+                <button class="btn-icon" onclick="confirmExit()" title="Sair">✕</button>
+                <span id="quiz-phase-label" class="hdr-name"></span>
+            </div>
+            <div class="hdr-right">
+                <div class="lives-display" id="quiz-lives-display"></div>
+                <div class="score-pill"><span id="quiz-score">0</span> pts</div>
+            </div>
+        </header>
+
+        <div class="quiz-container">
+            <div class="progress-wrap">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                <span class="progress-text" id="progress-text">1 / 4</span>
+            </div>
+
+            <div class="question-card" id="question-card">
+                <div class="q-topic" id="q-topic"></div>
+                <div class="q-text" id="q-text"></div>
+                <div class="q-formula" id="q-formula"></div>
+            </div>
+
+            <div class="options-grid" id="options-grid"></div>
+
+            <div class="feedback-panel hidden" id="feedback-panel">
+                <div class="feedback-icon" id="feedback-icon"></div>
+                <div class="feedback-title" id="feedback-title"></div>
+                <div class="feedback-msg" id="feedback-msg"></div>
+                <button class="btn-primary" id="btn-next" onclick="nextQuestion()">
+                    <span id="btn-next-label">PRÓXIMA</span>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                        <path d="M5 12H19M12 5l7 7-7 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-result" class="screen">
+        <div class="result-container">
+            <div class="result-trophy" id="result-trophy"></div>
+            <div class="result-title" id="result-title"></div>
+            <div class="result-sub" id="result-sub"></div>
+            <div class="result-stats">
+                <div class="stat-box">
+                    <div class="stat-val" id="res-correct"></div>
+                    <div class="stat-lbl">Acertos</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-val" id="res-score"></div>
+                    <div class="stat-lbl">Pontos</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-val" id="res-lives"></div>
+                    <div class="stat-lbl">Vidas</div>
+                </div>
+            </div>
+            <div class="result-actions">
+                <button class="btn-primary" onclick="continueAfterResult()">
+                    <span id="res-btn-label">CONTINUAR</span>
+                </button>
+                <button class="btn-ghost" onclick="retrySubfase()">↩ Tentar novamente</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-gameover" class="screen">
+        <div class="result-container">
+            <div class="result-trophy" style="font-size:5rem">💀</div>
+            <div class="result-title">GAME OVER</div>
+            <div class="result-sub">Você perdeu todas as vidas.<br>Mas todo erro é um aprendizado!</div>
+            <div class="result-stats">
+                <div class="stat-box">
+                    <div class="stat-val" id="go-score"></div>
+                    <div class="stat-lbl">Pontuação</div>
+                </div>
+            </div>
+            <div class="result-actions">
+                <button class="btn-primary" onclick="restartGame()">RECOMEÇAR</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-win" class="screen">
+        <div class="win-bg" aria-hidden="true">
+            <div class="confetti-container" id="confetti-container"></div>
+        </div>
+        <div class="result-container win-content">
+            <div class="result-trophy" style="font-size:5rem">🎓</div>
+            <div class="result-title win-glow">PARABÉNS!</div>
+            <div class="result-sub">Você completou o CalcQuest!<br>Dominou Limites, Derivadas e Integrais.</div>
+            <div class="result-stats">
+                <div class="stat-box">
+                    <div class="stat-val" id="win-score"></div>
+                    <div class="stat-lbl">Pontuação Final</div>
+                </div>
+            </div>
+            <div class="result-actions">
+                <button class="btn-primary" onclick="saveAndGoRanking()">VER RANKING 🏆</button>
+                <button class="btn-ghost" onclick="restartGame()">Jogar novamente</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-ranking" class="screen">
+        <header class="game-header">
+            <div class="hdr-left">
+                <button class="btn-icon" onclick="showScreen('screen-home')">⌂</button>
+                <span class="hdr-name">RANKING</span>
+            </div>
+        </header>
+        <div class="ranking-container">
+            <h2 class="map-title">🏆 Hall da Fama</h2>
+            <div id="ranking-list" class="ranking-list"></div>
+            <button class="btn-ghost" style="margin-top:1.5rem" onclick="clearRanking()">Limpar ranking</button>
+        </div>
+    </div>
+
+    <div id="modal-overlay" class="modal-overlay hidden" onclick="closeModal()">
+        <div class="modal-box" onclick="event.stopPropagation()">
+            <p id="modal-msg"></p>
+            <div class="modal-actions">
+                <button class="btn-primary" id="modal-confirm">Confirmar</button>
+                <button class="btn-ghost" onclick="closeModal()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast hidden"></div>
+
+    <script src="data.js"></script>
+    <script src="game.js"></script>
+</body>
+
+</html>
