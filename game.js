@@ -142,6 +142,22 @@ function isGameComplete() {
     return PHASES.every((_, i) => isPhaseDone(i));
 }
 
+function renderMath(el) {
+    if (!el) return;
+    if (typeof renderMathInElement === 'undefined') {
+        setTimeout(() => renderMath(el), 60);
+        return;
+    }
+    renderMathInElement(el, {
+        delimiters: [
+            { left: '$$', right: '$$', display: true },
+            { left: '$', right: '$', display: false },
+        ],
+        throwOnError: false,
+        errorColor: 'var(--wrong)',
+    });
+}
+
 function startSubfase(phaseIdx, subfaseIdx) {
     const phase = PHASES[phaseIdx];
     const subfase = phase.subfases[subfaseIdx];
@@ -155,6 +171,7 @@ function startSubfase(phaseIdx, subfaseIdx) {
         answered: false,
     };
 
+    // Header do quiz
     document.getElementById('quiz-phase-label').textContent =
         `${phase.name} — ${subfase.name}`;
     document.getElementById('quiz-score').textContent = state.score;
@@ -197,6 +214,9 @@ function renderQuestion() {
         btn.onclick = () => selectOption(btn, opt, opts);
         grid.appendChild(btn);
     });
+
+    renderMath(document.getElementById('question-card'));
+    renderMath(grid);
 
     const fb = document.getElementById('feedback-panel');
     fb.className = 'feedback-panel hidden';
@@ -248,6 +268,8 @@ function showFeedback(isCorrect, q) {
         ? getRandomPraise()
         : 'Quase lá!';
     document.getElementById('feedback-msg').innerHTML = q.explanation || '';
+
+    renderMath(document.getElementById('feedback-panel'));
 
     const isLast = session.qIndex >= session.questions.length - 1;
     document.getElementById('btn-next-label').textContent = isLast ? 'VER RESULTADO' : 'PRÓXIMA';
