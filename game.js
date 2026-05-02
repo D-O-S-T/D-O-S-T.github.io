@@ -99,12 +99,10 @@ function renderMap() {
         const unlocked = pi === 0 || isPhaseDone(pi - 1);
         card.classList.toggle('locked', !unlocked);
 
-        // Status da fase
         const phaseDone = isPhaseDone(pi);
         const phasePerfect = isPhasePerfect(pi);
         statusEl.textContent = phasePerfect ? '⭐' : phaseDone ? '✅' : '';
 
-        // Subfases
         subfasesEl.innerHTML = '';
         phase.subfases.forEach((sf, si) => {
             const btn = document.createElement('button');
@@ -157,7 +155,6 @@ function startSubfase(phaseIdx, subfaseIdx) {
         answered: false,
     };
 
-    // Header do quiz
     document.getElementById('quiz-phase-label').textContent =
         `${phase.name} — ${subfase.name}`;
     document.getElementById('quiz-score').textContent = state.score;
@@ -173,25 +170,21 @@ function renderQuestion() {
 
     session.answered = false;
 
-    // Progress bar
     const total = session.questions.length;
     const pct = (session.qIndex / total) * 100;
     document.getElementById('progress-fill').style.width = pct + '%';
     document.getElementById('progress-text').textContent =
         `${session.qIndex + 1} / ${total}`;
 
-    // Animação de entrada
     const card = document.getElementById('question-card');
     card.classList.remove('flip-in');
     void card.offsetWidth; // reflow
     card.classList.add('flip-in');
 
-    // Conteúdo
     document.getElementById('q-topic').textContent = q.topic || '';
     document.getElementById('q-text').textContent = q.text || '';
     document.getElementById('q-formula').textContent = q.formula || '';
 
-    // Opções
     const grid = document.getElementById('options-grid');
     const letters = ['A', 'B', 'C', 'D'];
     const opts = shuffle([...q.options]);
@@ -205,7 +198,6 @@ function renderQuestion() {
         grid.appendChild(btn);
     });
 
-    // Esconde feedback
     const fb = document.getElementById('feedback-panel');
     fb.className = 'feedback-panel hidden';
 }
@@ -214,7 +206,6 @@ function selectOption(btn, chosen, allOpts) {
     if (session.answered) return;
     session.answered = true;
 
-    // Desabilita todos os botões
     const grid = document.getElementById('options-grid');
     grid.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
 
@@ -224,7 +215,7 @@ function selectOption(btn, chosen, allOpts) {
 
     if (!isCorrect) {
         grid.querySelectorAll('.option-btn').forEach(b => {
-            const text = b.textContent.slice(2).trim(); // remove "A. "
+            const text = b.textContent.slice(2).trim();
             const match = allOpts.find(o => o.text === text);
             if (match && match.correct) b.classList.add('correct');
         });
@@ -232,11 +223,15 @@ function selectOption(btn, chosen, allOpts) {
 
     if (isCorrect) {
         session.correct++;
-        const pts = POINTS_CORRECT;
-        state.score += pts;
-        document.getElementById('quiz-score').textContent = state.score;
-        document.getElementById('hdr-score').textContent = state.score;
-        showScorePop(btn, `+${pts}`);
+        const sfId = PHASES[session.phaseIdx].subfases[session.subfaseIdx].id;
+        const alreadyDone = isSubfaseDone(sfId);
+        if (!alreadyDone) {
+            const pts = POINTS_CORRECT;
+            state.score += pts;
+            document.getElementById('quiz-score').textContent = state.score;
+            document.getElementById('hdr-score').textContent = state.score;
+            showScorePop(btn, `+${pts}`);
+        }
     } else {
         loseLife();
     }
@@ -285,7 +280,6 @@ function loseLife() {
     renderLives('quiz-lives-display');
     renderLives('lives-display');
 
-    // Shake animation no coração perdido
     const hearts = document.querySelectorAll('#quiz-lives-display .life-heart');
     const target = hearts[state.lives];
     if (target) {
@@ -305,18 +299,28 @@ function endSubfase() {
     const total = session.questions.length;
     const correct = session.correct;
     const isPerfect = correct === total;
-
     const sfId = PHASES[session.phaseIdx].subfases[session.subfaseIdx].id;
-    const prev = state.progress[sfId];
-    if (isPerfect) {
-        state.progress[sfId] = 'perfect';
-        if (prev !== 'perfect') state.score += POINTS_PERFECT; // bônus estrela
-    } else if (correct > 0) {
-        if (!isSubfaseDone(sfId)) state.progress[sfId] = 'completed';
+    const prevStatus = state.progress[sfId];
+    const alreadyDone = isSubfaseDone(sfId);
+
+    let bonusDesc = '';
+    if (!alreadyDone) {
+
+        const lifeBonus = state.lives * POINTS_PER_LIFE;
+        state.score += lifeBonus;
+        if (isPerfect) state.score += POINTS_PERFECT;
+        bonusDesc = isPerfect
+            ? `Bônus perfeição: +${POINTS_PERFECT} pts • Bônus vidas: +${lifeBonus} pts`
+            : `Bônus vidas: +${lifeBonus} pts`;
+    } else {
+        bonusDesc = 'Subfase já concluída — sem pontos extras por repetição.';
     }
 
-    const lifeBonus = state.lives * POINTS_PER_LIFE;
-    state.score += lifeBonus;
+    if (isPerfect) {
+        state.progress[sfId] = 'perfect';
+    } else if (correct > 0 && !alreadyDone) {
+        state.progress[sfId] = 'completed';
+    }
 
     saveState();
 
@@ -327,19 +331,22 @@ function endSubfase() {
     if (isPerfect) {
         document.getElementById('result-trophy').textContent = '⭐';
         document.getElementById('result-title').textContent = 'PERFEITO!';
-        document.getElementById('result-sub').textContent = `Bônus de perfeição: +${POINTS_PERFECT} pts • Bônus vidas: +${lifeBonus} pts`;
+        document.getElementById('result-sub').textContent = bonusDesc;
     } else if (correct >= Math.ceil(total / 2)) {
         document.getElementById('result-trophy').textContent = '🏅';
         document.getElementById('result-title').textContent = 'BOM TRABALHO!';
-        document.getElementById('result-sub').textContent = `Bônus vidas: +${lifeBonus} pts. Repita para tentar a estrela!`;
+        document.getElementById('result-sub').textContent = bonusDesc;
     } else {
         document.getElementById('result-trophy').textContent = '📚';
         document.getElementById('result-title').textContent = 'CONTINUE TENTANDO!';
-        document.getElementById('result-sub').textContent = 'Revise o conteúdo e tente novamente.';
+        document.getElementById('result-sub').textContent = bonusDesc;
     }
 
     document.getElementById('res-btn-label').textContent =
         isGameComplete() ? 'VER VITÓRIA 🎓' : 'VOLTAR AO MAPA';
+
+    const retryBtn = document.querySelector('#screen-result .btn-ghost');
+    if (retryBtn) retryBtn.style.display = alreadyDone ? 'none' : '';
 
     showScreen('screen-result');
 }
@@ -418,14 +425,13 @@ function renderRanking() {
 }
 
 function confirmHome() {
-    openModal('Voltar ao menu? Seu progresso na fase atual não será salvo.', () => {
-        renderMap();
-        showScreen('screen-map');
+    openModal('Voltar ao menu inicial?', () => {
+        showScreen('screen-home');
     });
 }
 
 function confirmExit() {
-    openModal('Sair da rodada? Você perderá o progresso desta subfase.', () => {
+    openModal('Sair da rodada? O progresso desta subfase não será salvo.', () => {
         renderMap();
         showScreen('screen-map');
     });
