@@ -210,8 +210,9 @@ function renderQuestion() {
     opts.forEach((opt, i) => {
         const btn = document.createElement('button');
         btn.className = 'option-btn';
+        btn.dataset.correct = opt.correct ? '1' : '0';
         btn.innerHTML = `<span class="option-letter">${letters[i]}.</span>${opt.text}`;
-        btn.onclick = () => selectOption(btn, opt, opts);
+        btn.onclick = () => selectOption(btn, opt);
         grid.appendChild(btn);
     });
 
@@ -222,7 +223,7 @@ function renderQuestion() {
     fb.className = 'feedback-panel hidden';
 }
 
-function selectOption(btn, chosen, allOpts) {
+function selectOption(btn, chosen) {
     if (session.answered) return;
     session.answered = true;
 
@@ -235,9 +236,7 @@ function selectOption(btn, chosen, allOpts) {
 
     if (!isCorrect) {
         grid.querySelectorAll('.option-btn').forEach(b => {
-            const text = b.textContent.slice(2).trim();
-            const match = allOpts.find(o => o.text === text);
-            if (match && match.correct) b.classList.add('correct');
+            if (b.dataset.correct === '1') b.classList.add('correct');
         });
     }
 
